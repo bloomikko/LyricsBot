@@ -30,58 +30,57 @@ try:
 
 	#Main function for getting the lyrics
 	def main():
-		while True:
-			#Create a pickle file for maintaining the 24 last songs
-			pickle_file = open('songfile.pickle', 'ab')
-			try:
-				last24Songs = pickle.load(open('songfile.pickle', 'rb'))
-			except EOFError:
-				last24Songs = []
+		#Create a pickle file for maintaining the 24 last songs
+		pickle_file = open('songfile.pickle', 'ab')
+		try:
+			last24Songs = pickle.load(open('songfile.pickle', 'rb'))
+		except EOFError:
+			last24Songs = []
 				
-			#Get a random song from the artist
+		#Get a random song from the artist
+		lyricLinkIndex = (random.randint(0, len(fullLinks)-1))
+		while lyricLinkIndex in last24Songs:
 			lyricLinkIndex = (random.randint(0, len(fullLinks)-1))
-			while lyricLinkIndex in last24Songs:
-				lyricLinkIndex = (random.randint(0, len(fullLinks)-1))
 
-			#Add the songs to the pickle file
-			if len(last24Songs) < 24:
-				last24Songs.append(lyricLinkIndex)
-				with open ('songfile.pickle', 'wb') as pickle_file:
-					pickle.dump(last24Songs, pickle_file)
-			else:
-				last24Songs.remove(last24Songs[0])
-				last24Songs.append(lyricLinkIndex)
-				with open ('songfile.pickle', 'wb') as pickle_file:
-					pickle.dump(last24Songs, pickle_file)
+		#Add the songs to the pickle file
+		if len(last24Songs) < 24:
+			last24Songs.append(lyricLinkIndex)
+			with open ('songfile.pickle', 'wb') as pickle_file:
+				pickle.dump(last24Songs, pickle_file)
+		else:
+			last24Songs.remove(last24Songs[0])
+			last24Songs.append(lyricLinkIndex)
+			with open ('songfile.pickle', 'wb') as pickle_file:
+				pickle.dump(last24Songs, pickle_file)
 
-			#Get the lyrics from the song
-			lyricsRequest = urllib2.urlopen(fullLinks[lyricLinkIndex])
-			lyricSoup = BeautifulSoup(lyricsRequest, 'html.parser')
-			lyrics = lyricSoup.find('div',  {"class": "lyricbox"})
+		#Get the lyrics from the song
+		lyricsRequest = urllib2.urlopen(fullLinks[lyricLinkIndex])
+		lyricSoup = BeautifulSoup(lyricsRequest, 'html.parser')
+		lyrics = lyricSoup.find('div',  {"class": "lyricbox"})
 
-			for br in lyrics("br"):
-				br.replace_with("\n")
-				lyricList = lyrics.getText().split("\n")
+		for br in lyrics("br"):
+			br.replace_with("\n")
+			lyricList = lyrics.getText().split("\n")
 
-			#Get 1-4 lines and then form the tweet
-			numberOfLines = (random.randint(1,4))
-			startIndex = (random.randint(0, len(lyricList)-1))
+		#Get 1-4 lines and then form the tweet
+		numberOfLines = (random.randint(1,4))
+		startIndex = (random.randint(0, len(lyricList)-1))
+		tweet = lyricList[startIndex]
+
+		if tweet == "":
+			startIndex -= 1
 			tweet = lyricList[startIndex]
-
-			if tweet == "":
-				startIndex -= 1
-				tweet = lyricList[startIndex]
 					
-			for x in range(numberOfLines-1):
-				lyricRange = startIndex + numberOfLines
-				if lyricRange < len(lyricList):
-					startIndex += 1
-					if lyricList[startIndex] != "":
-						tweet = tweet + "\n" + lyricList[startIndex]
-					else:
-						break
+		for x in range(numberOfLines-1):
+			lyricRange = startIndex + numberOfLines
+			if lyricRange < len(lyricList):
+				startIndex += 1
+				if lyricList[startIndex] != "":
+					tweet = tweet + "\n" + lyricList[startIndex]
+				else:
+					break
 
-			api.update_status(tweet)
+		api.update_status(tweet)
 
 	if __name__ == "__main__":
 		main()
