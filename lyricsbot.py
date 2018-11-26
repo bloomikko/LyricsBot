@@ -18,7 +18,7 @@ try:
 	artistIdentifier = artistPage[23:] + ":"
 	page = urllib2.urlopen(artistPage)
 	fullLinks = []
-	last24Songs = []
+	last48Songs = []
 	soup = BeautifulSoup(page, 'html.parser')
 	for link in soup.find_all('a', href=re.compile(artistIdentifier)):
 		forbiddenSuffix = "?action=edit&redlink=1"
@@ -33,25 +33,25 @@ try:
 		#Create a pickle file for maintaining the 24 last songs
 		pickle_file = open('songfile.pickle', 'ab')
 		try:
-			last24Songs = pickle.load(open('songfile.pickle', 'rb'))
+			last48Songs = pickle.load(open('songfile.pickle', 'rb'))
 		except EOFError:
-			last24Songs = []
+			last48Songs = []
 				
 		#Get a random song from the artist
 		lyricLinkIndex = (random.randint(0, len(fullLinks)-1))
-		while lyricLinkIndex in last24Songs:
+		while lyricLinkIndex in last48Songs:
 			lyricLinkIndex = (random.randint(0, len(fullLinks)-1))
 
 		#Add the songs to the pickle file
-		if len(last24Songs) < 24:
-			last24Songs.append(lyricLinkIndex)
+		if len(last48Songs) < 48:
+			last48Songs.append(lyricLinkIndex)
 			with open ('songfile.pickle', 'wb') as pickle_file:
-				pickle.dump(last24Songs, pickle_file)
+				pickle.dump(last48Songs, pickle_file)
 		else:
-			last24Songs.remove(last24Songs[0])
-			last24Songs.append(lyricLinkIndex)
+			last48Songs.remove(last48Songs[0])
+			last48Songs.append(lyricLinkIndex)
 			with open ('songfile.pickle', 'wb') as pickle_file:
-				pickle.dump(last24Songs, pickle_file)
+				pickle.dump(last48Songs, pickle_file)
 
 		#Get the lyrics from the song
 		lyricsRequest = urllib2.urlopen(fullLinks[lyricLinkIndex])
