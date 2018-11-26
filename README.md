@@ -7,7 +7,7 @@ Bot also running at https://twitter.com/cupcakKesays on my Raspberry Pi
 
 # Features
   - Easy to apply artist, not restricted
-  - When getting the song, checks whether it has been used in last 24 hours (maintained by a pickle file)
+  - When getting the song, checks whether it has been used in last 24 hours (maintained by a pickle file) (Update 25/06/2018: now 48 hours/songs, as cupcakKe's discography allows this now)
   - Forms an 1-4 line Tweet, the number of lines is randomized
   - Posting every hour, this also can be modified
   - Checks for newlines and removes them
