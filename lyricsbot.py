@@ -30,7 +30,7 @@ try:
 
 	#Main function for getting the lyrics
 	def main():
-		#Create a pickle file for maintaining the 24 last songs
+		#Create a pickle file for maintaining the 48 last songs
 		pickle_file = open('songfile.pickle', 'ab')
 		try:
 			last48Songs = pickle.load(open('songfile.pickle', 'rb'))
