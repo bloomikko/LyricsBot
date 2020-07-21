@@ -1,4 +1,4 @@
-import tweepy, urllib2, sys, re, random, pickle
+import tweepy, requests, sys, re, random, pickle
 from bs4 import BeautifulSoup
 
 try:
@@ -16,13 +16,12 @@ try:
 	#Get the lyric links, using cupcakKe as placeholder. You can place any artist found in LyricsWikia.
 	artistPage = "http://lyrics.wikia.com/wiki/CupcakKe"
 	artistIdentifier = artistPage[23:] + ":"
-	page = urllib2.urlopen(artistPage)
+	page = requests.get(artistPage).text
 	fullLinks = []
-	last48Songs = []
 	soup = BeautifulSoup(page, 'html.parser')
 	for link in soup.find_all('a', href=re.compile(artistIdentifier)):
 		forbiddenSuffix = "?action=edit&redlink=1"
-		#Two lines below are cupcakKe specific
+		#Two lines below are cupcakKe specific, remove them and edit line 27 to adapt to your needs
 		removeAlbums = "(201"
 		removeRemix = "Panda_Remix"
 		if forbiddenSuffix not in link['href'] and removeAlbums not in link['href'] and removeRemix not in link['href']:
@@ -30,7 +29,7 @@ try:
 
 	#Main function for getting the lyrics
 	def main():
-		#Create a pickle file for maintaining the 48 last songs
+		#Create a pickle file for maintaining the 48 last songs. Edit the number according to your needs.
 		pickle_file = open('songfile.pickle', 'ab')
 		try:
 			last48Songs = pickle.load(open('songfile.pickle', 'rb'))
@@ -54,7 +53,7 @@ try:
 				pickle.dump(last48Songs, pickle_file)
 
 		#Get the lyrics from the song
-		lyricsRequest = urllib2.urlopen(fullLinks[lyricLinkIndex])
+		lyricsRequest = requests.get(fullLinks[lyricLinkIndex]).text
 		lyricSoup = BeautifulSoup(lyricsRequest, 'html.parser')
 		lyrics = lyricSoup.find('div',  {"class": "lyricbox"})
 
@@ -86,4 +85,4 @@ try:
 		main()
 
 except Exception as e:
-    print(e.message)
+    print(e)
