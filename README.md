@@ -1,7 +1,8 @@
 # LyricsBot
 Twitter bot for getting lyrics from LyricsWikia from a certain artist. The artist can be determined, I used cupcakKe as an example. I've learned Python independently in 2014 but never used it since. I used to be an active Twitter user and there are a lot of interesting bots, so I decided to make one myself. Python seemed to be the perfect language for this purpose.
 
-Bot also running at https://twitter.com/cupcakKesays on my Raspberry Pi.
+~~Bot also running at https://twitter.com/cupcakKesays on my Raspberry Pi.~~
+**Update 14/11/2020:** LyricsWikia has shut down - thus, the code and the Twitter bot do not work anymore.
 
 **Note:** *cupcakKe's lyrics are very NSFW* 👀
 
