@@ -1,88 +1,100 @@
-import tweepy, requests, sys, re, random, pickle
+import tweepy
+import requests
+import re
+import random
+import pickle
 from bs4 import BeautifulSoup
 
 try:
-	#Twitter credentials, you can get these from https://apps.twitter.com for your account
-	CONSUMER_KEY = 'YOUR_CONSUMER_KEY'
-	CONSUMER_SECRET = 'YOUR_CONSUMER_SECRET'
-	ACCESS_KEY = 'YOUR_ACCESS_KEY'
-	ACCESS_SECRET = 'YOUR_ACCESS_SECRET'
+    # Twitter credentials
+    # You can get these from https://apps.twitter.com for your account
+    CONSUMER_KEY: str = "YOUR_CONSUMER_KEY"
+    CONSUMER_SECRET: str = "YOUR_CONSUMER_SECRET"
+    ACCESS_KEY: str = "YOUR_ACCESS_KEY"
+    ACCESS_SECRET: str = "YOUR_ACCESS_SECRET"
 
-	#Setting up the authentication and API for Twitter
-	auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-	auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
-	api = tweepy.API(auth)
+    # Setting up the authentication and API for Twitter
+    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
+    api = tweepy.API(auth)
 
-	#Get the lyric links, using cupcakKe as placeholder. You can place any artist found in LyricsWikia.
-	artistPage = "http://lyrics.wikia.com/wiki/CupcakKe"
-	artistIdentifier = artistPage[23:] + ":"
-	page = requests.get(artistPage).text
-	fullLinks = []
-	soup = BeautifulSoup(page, 'html.parser')
-	for link in soup.find_all('a', href=re.compile(artistIdentifier)):
-		forbiddenSuffix = "?action=edit&redlink=1"
-		#Two lines below are cupcakKe specific, remove them and edit line 27 to adapt to your needs
-		removeAlbums = "(201"
-		removeRemix = "Panda_Remix"
-		if forbiddenSuffix not in link['href'] and removeAlbums not in link['href'] and removeRemix not in link['href']:
-			fullLinks.append('http://lyrics.wikia.com' + (link.get('href')))
+    # Get the lyric links, using cupcakKe as placeholder
+    # You can place any artist found in LyricsWikia
+    artist_page: str = "http://lyrics.wikia.com/wiki/CupcakKe"
+    artist_identifier: str = artist_page[23:] + ":"
+    page = requests.get(artist_page).text
+    full_links: list = []
+    soup = BeautifulSoup(page, "html.parser")
+    for link in soup.find_all("a", href=re.compile(artist_identifier)):
+        forbidden_suffix: str = "?action=edit&redlink=1"
+        # Two lines below are cupcakKe specific
+        # Remove them and edit line 27 to adapt to your needs
+        remove_albums: str = "(201"
+        remove_remix: str = "Panda_Remix"
+        if (
+            forbidden_suffix not in link["href"]
+            and remove_albums not in link["href"]
+            and remove_remix not in link["href"]
+        ):
+            full_links.append("http://lyrics.wikia.com" + (link.get("href")))
 
-	#Main function for getting the lyrics
-	def main():
-		#Create a pickle file for maintaining the 48 last songs. Edit the number according to your needs.
-		pickle_file = open('songfile.pickle', 'ab')
-		try:
-			last48Songs = pickle.load(open('songfile.pickle', 'rb'))
-		except EOFError:
-			last48Songs = []
-				
-		#Get a random song from the artist
-		lyricLinkIndex = (random.randint(0, len(fullLinks)-1))
-		while lyricLinkIndex in last48Songs:
-			lyricLinkIndex = (random.randint(0, len(fullLinks)-1))
+    # Main function for getting the lyrics
+    def main():
+        # Create a pickle file for maintaining the 48 last songs
+        # Edit the number according to your needs
+        pickle_file = open("songfile.pickle", "ab")
+        try:
+            last_48_songs: list = pickle.load(open("songfile.pickle", "rb"))
+        except EOFError:
+            last_48_songs: list = []
 
-		#Add the songs to the pickle file
-		if len(last48Songs) < 48:
-			last48Songs.append(lyricLinkIndex)
-			with open ('songfile.pickle', 'wb') as pickle_file:
-				pickle.dump(last48Songs, pickle_file)
-		else:
-			last48Songs.remove(last48Songs[0])
-			last48Songs.append(lyricLinkIndex)
-			with open ('songfile.pickle', 'wb') as pickle_file:
-				pickle.dump(last48Songs, pickle_file)
+        # Get a random song from the artist
+        lyric_link_index: int = random.randint(0, len(full_links) - 1)
+        while lyric_link_index in last_48_songs:
+            lyric_link_index = random.randint(0, len(full_links) - 1)
 
-		#Get the lyrics from the song
-		lyricsRequest = requests.get(fullLinks[lyricLinkIndex]).text
-		lyricSoup = BeautifulSoup(lyricsRequest, 'html.parser')
-		lyrics = lyricSoup.find('div',  {"class": "lyricbox"})
+        # Add the songs to the pickle file
+        if len(last_48_songs) < 48:
+            last_48_songs.append(lyric_link_index)
+            with open("songfile.pickle", "wb") as pickle_file:
+                pickle.dump(last_48_songs, pickle_file)
+        else:
+            last_48_songs.remove(last_48_songs[0])
+            last_48_songs.append(lyric_link_index)
+            with open("songfile.pickle", "wb") as pickle_file:
+                pickle.dump(last_48_songs, pickle_file)
 
-		for br in lyrics("br"):
-			br.replace_with("\n")
-			lyricList = lyrics.getText().split("\n")
+        # Get the lyrics from the song
+        lyrics_request = requests.get(full_links[lyric_link_index]).text
+        lyric_soup = BeautifulSoup(lyrics_request, "html.parser")
+        lyrics = lyric_soup.find("div", {"class": "lyricbox"})
 
-		#Get 1-4 lines and then form the tweet
-		numberOfLines = (random.randint(1,4))
-		startIndex = (random.randint(0, len(lyricList)-1))
-		tweet = lyricList[startIndex]
+        for br in lyrics("br"):
+            br.replace_with("\n")
+            lyric_list = lyrics.getText().split("\n")
 
-		if tweet == "":
-			startIndex -= 1
-			tweet = lyricList[startIndex]
-					
-		for x in range(numberOfLines-1):
-			lyricRange = startIndex + numberOfLines
-			if lyricRange < len(lyricList):
-				startIndex += 1
-				if lyricList[startIndex] != "":
-					tweet = tweet + "\n" + lyricList[startIndex]
-				else:
-					break
+        # Get 1-4 lines and then form the tweet
+        number_of_lines: int = random.randint(1, 4)
+        start_index: int = random.randint(0, len(lyric_list) - 1)
+        tweet: str = lyric_list[start_index]
 
-		api.update_status(tweet)
+        if tweet == "":
+            start_index -= 1
+            tweet = lyric_list[start_index]
 
-	if __name__ == "__main__":
-		main()
+        for x in range(number_of_lines - 1):
+            lyric_range = start_index + number_of_lines
+            if lyric_range < len(lyric_list):
+                start_index += 1
+                if lyric_list[start_index] != "":
+                    tweet = tweet + "\n" + lyric_list[start_index]
+                else:
+                    break
+
+        api.update_status(tweet)
+
+    if __name__ == "__main__":
+        main()
 
 except Exception as e:
     print(e)
